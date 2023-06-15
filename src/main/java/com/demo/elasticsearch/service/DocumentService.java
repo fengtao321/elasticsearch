@@ -6,28 +6,26 @@ import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
 
-import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface DocumentService {
+    Document create(Document document) throws DuplicateDocumentException;
+
+    Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException;
 
     Optional<Document> getByTitle(String title);
 
+    Optional<Document> getByTitleAndAuthor(String title, String author);
+
     List<Document> getAll();
-
-    List<Document> findByAuthor(String author);
-
-    List<Document> findByTitleAndAuthor(String title, String author);
-
-    Document create(Document document) throws DuplicateDocumentException;
 
     void deleteById(String id);
 
-    Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException, ParseException;
+    List<Document> searchBlocking(String searchText);
 
-    List<Document> search(String searchText);
+    CompletableFuture<List<Document>> search(String searchText);
 
-    CompletableFuture<List<Document>> searchAsync(String searchText) throws InterruptedException;
+    Document convertToEntity(DocumentDto documentDtoDto);
 }

@@ -5,9 +5,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.demo.elasticsearch.metadata.DocumentDate;
+import com.demo.elasticsearch.model.Document;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
+import lombok.SneakyThrows;
 
 @Data
 public class DocumentDto {
@@ -26,7 +28,8 @@ public class DocumentDto {
 
     private String subject;
 
-    public int dateConverted() throws ParseException {
+    @SneakyThrows
+    public int dateConverted() {
         Date d = dateFormat.parse(this.date);
         return (int)(d.getTime())/1000;
     }
@@ -34,4 +37,5 @@ public class DocumentDto {
     public void setDate(Date date) {
         this.date = dateFormat.format(date);
     }
+
 }

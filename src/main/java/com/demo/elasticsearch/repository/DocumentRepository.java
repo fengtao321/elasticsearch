@@ -10,7 +10,5 @@ import java.util.Optional;
 @Repository
 public interface DocumentRepository extends ElasticsearchRepository<Document, String> {
 
-    List<Document> findByAuthor(String author);
-
     Optional<Document> findByTitle(String title);
 }

@@ -2,17 +2,13 @@ package com.demo.elasticsearch.service.impl;
 
 import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.match;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
@@ -21,15 +17,16 @@ import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.prop.ConfigProps;
 import com.demo.elasticsearch.repository.DocumentRepository;
+import com.demo.elasticsearch.repository.DocumentRepositoryCustom;
 import com.demo.elasticsearch.service.DocumentService;
 import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 
@@ -41,6 +38,8 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
 
+    private final DocumentRepositoryCustom documentRepositoryCustom;
+
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     private final ElasticsearchClient esClient;
@@ -48,6 +47,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final ElasticsearchAsyncClient asyncESClient;
 
     private final ConfigProps props;
+
+    private final ModelMapper modelMapper;
 
     @Override
     public Optional<Document> getByTitle(String title) {
@@ -63,19 +64,8 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<Document> findByAuthor(String author) {
-        return documentRepository.findByAuthor(author);
-    }
-
-    @Override
-    public List<Document> findByTitleAndAuthor(String title, String author) {
-        var criteria = QueryBuilders.bool(builder -> builder.must(
-                match(queryAuthor -> queryAuthor.field("author").query(author)),
-                match(queryTitle -> queryTitle.field("title").query(title))
-        ));
-
-        return elasticsearchTemplate.search(NativeQuery.builder().withQuery(criteria).build(), Document.class)
-                .stream().map(SearchHit::getContent).toList();
+    public Optional<Document> getByTitleAndAuthor(String title, String author) {
+        return documentRepositoryCustom.findByTitleAuthor(title, author);
     }
 
     @Override
@@ -92,20 +82,16 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException, ParseException {
-        Document oldDocument = documentRepository.findById(id)
+    public Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException {
+        String oldDocumentId = documentRepository.findById(id).map(Document::getId)
                 .orElseThrow(() -> new DocumentNotFoundException("There is not document associated with the given id"));
-        oldDocument.setContent(documentDto.getContent());
-        oldDocument.setAuthor(documentDto.getAuthor());
-        oldDocument.setDate(documentDto.dateConverted());
-        oldDocument.setTitle(documentDto.getTitle());
-        oldDocument.setSubject(documentDto.getSubject());
-        return documentRepository.save(oldDocument);
+        Document document = convertToEntity(documentDto);
+        document.setId(oldDocumentId);
+        return documentRepository.save(document);
     }
 
     @Override
-//    @Async("asyncExecutor")
-    public CompletableFuture<List<Document>> searchAsync(String searchText) throws InterruptedException{
+    public CompletableFuture<List<Document>> search(String searchText){
         log.info("Thread-1: " + Thread.currentThread().getName());
         var response = asyncESClient.search(s -> s
                         .index(props.getIndex().getName())
@@ -130,7 +116,7 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<Document> search(String searchText) {
+    public List<Document> searchBlocking(String searchText) {
         List<Document> result = new ArrayList<>();
 
         try {
@@ -167,6 +153,14 @@ public class DocumentServiceImpl implements DocumentService {
         }
 
         return result;
+    }
+
+    @Override
+    public Document convertToEntity(DocumentDto documentDtoDto) {
+        Document document = modelMapper.map(documentDtoDto, Document.class);
+        document.setDate(documentDtoDto.dateConverted());
+
+        return document;
     }
 
 }

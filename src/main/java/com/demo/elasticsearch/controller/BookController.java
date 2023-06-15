@@ -7,12 +7,12 @@ import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -20,9 +20,6 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/v1/doc")
 public class BookController {
     private final DocumentService documentService;
-
-    private final ModelMapper modelMapper;
-
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<Document> getAllDocuments() {
@@ -31,25 +28,26 @@ public class BookController {
 
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping
-    public Document createDocument(@Valid @RequestBody DocumentDto documentDto) throws DuplicateDocumentException, ParseException {
-        return documentService.create(convertToEntity(documentDto));
+    public Document createDocument(@Valid @RequestBody DocumentDto documentDto) throws DuplicateDocumentException {
+        return documentService.create(documentService.convertToEntity(documentDto));
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/{title}")
-    public Document getBookByTitle(@PathVariable String title) throws DocumentNotFoundException {
-        return documentService.getByTitle(title).orElseThrow(() -> new DocumentNotFoundException("The given document is not exist"));
+    @GetMapping(value = "/{title}/{author}")
+    public Document getBookByTitle(@PathVariable String title, @RequestParam(value = "author",required = false) String author) throws DocumentNotFoundException {
+        Optional<Document> document;
+        if(author.isBlank()) {
+            document =documentService.getByTitle(title);
+        } else {
+            document = documentService.getByTitleAndAuthor(title, author);
+        }
+        return document.orElseThrow(() -> new DocumentNotFoundException("The given document is not exist"));
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/query")
-    public List<Document> getBooksByAuthorAndTitle(@RequestParam(value = "title") String title, @RequestParam(value = "author") String author) {
-        return documentService.findByTitleAndAuthor(title, author);
-    }
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping(value = "/{id}")
-    public Document updateDocument(@PathVariable String id, @RequestBody DocumentDto documentDto) throws DocumentNotFoundException, ParseException {
+    public Document updateDocument(@PathVariable String id, @RequestBody DocumentDto documentDto) throws DocumentNotFoundException {
         return documentService.update(id, documentDto);
     }
 
@@ -60,23 +58,15 @@ public class BookController {
     }
 
     @ResponseStatus(HttpStatus.ACCEPTED)
-    @GetMapping(value = "/search")
-    public List<Document> searchDocument(@RequestParam(value = "searchText") String searchText) {
-        return documentService.search(searchText);
+    @GetMapping(value = "/searchBlocking")
+    public List<Document> searchDocumentBlocking(@RequestParam(value = "searchText") String searchText) {
+        return documentService.searchBlocking(searchText);
     }
 
     @ResponseStatus(HttpStatus.ACCEPTED)
-    @GetMapping(value = "/searchAsync")
-    public CompletableFuture<List<Document>> searchDocumentAsync(@RequestParam(value = "searchText") String searchText) throws InterruptedException {
-        return documentService.searchAsync(searchText);
-    }
-
-
-    private Document convertToEntity(DocumentDto documentDtoDto) throws ParseException {
-        Document document = modelMapper.map(documentDtoDto, Document.class);
-        document.setDate(documentDtoDto.dateConverted());
-
-        return document;
+    @GetMapping(value = "/search")
+    public CompletableFuture<List<Document>> searchDocument(@RequestParam(value = "searchText") String searchText) {
+        return documentService.search(searchText);
     }
 
 }
