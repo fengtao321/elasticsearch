@@ -69,4 +69,10 @@ public class ElasticSearch {
         return client;
     }
 
+    @Bean
+    public SearchSourceBuilder getSearchSourceBuilder(){
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        return sourceBuilder;
+    }
+
 }

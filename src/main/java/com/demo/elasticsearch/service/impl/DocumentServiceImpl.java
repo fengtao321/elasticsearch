@@ -9,17 +9,18 @@ import java.util.Optional;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
 import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
+import com.demo.elasticsearch.prop.ConfigProps;
 import com.demo.elasticsearch.repository.DocumentRepository;
 import com.demo.elasticsearch.service.DocumentService;
 import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
@@ -39,6 +40,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     private final ElasticsearchClient esClient;
+
+    private final ConfigProps props;
 
     @Override
     public Optional<Document> getByTitle(String title) {
@@ -102,19 +105,13 @@ public class DocumentServiceImpl implements DocumentService {
             SearchResponse<Document> response = esClient.search(s -> s
                             .index("doc")
                             .query(q -> q
-                                    .match(t -> t
-                                            .field("author")
-                                            .query(searchText)
-
+                                    .multiMatch(
+                                            t -> t.fields("author", "content","subject", "title")
+                                            .query(searchText.toLowerCase())
+                                                    .fuzziness("AUTO")
+                                                    .minimumShouldMatch("2")
                                     )
-                            )
-                            .query(q -> q
-                                    .match(t -> t
-                                            .field("content")
-                                            .query(searchText)
-
-                            )
-                    ),
+                            ),
                     Document.class
             );
             TotalHits total = response.hits().total();
