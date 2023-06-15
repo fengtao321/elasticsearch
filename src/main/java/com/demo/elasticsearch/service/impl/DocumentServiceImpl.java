@@ -2,7 +2,7 @@ package com.demo.elasticsearch.service.impl;
 
 import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.match;
 
-import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,16 +13,15 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
+import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.repository.DocumentRepository;
 import com.demo.elasticsearch.service.DocumentService;
 import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.index.query.AbstractQueryBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -84,14 +83,14 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Document update(String id, Document document) throws DocumentNotFoundException {
+    public Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException, ParseException {
         Document oldDocument = documentRepository.findById(id)
                 .orElseThrow(() -> new DocumentNotFoundException("There is not document associated with the given id"));
-        oldDocument.setContent(document.getContent());
-        oldDocument.setAuthor(document.getAuthor());
-        oldDocument.setDate(document.getDate());
-        oldDocument.setTitle(document.getTitle());
-        oldDocument.setSubject(document.getSubject());
+        oldDocument.setContent(documentDto.getContent());
+        oldDocument.setAuthor(documentDto.getAuthor());
+        oldDocument.setDate(documentDto.dateConverted());
+        oldDocument.setTitle(documentDto.getTitle());
+        oldDocument.setSubject(documentDto.getSubject());
         return documentRepository.save(oldDocument);
     }
 
@@ -101,13 +100,21 @@ public class DocumentServiceImpl implements DocumentService {
 
         try {
             SearchResponse<Document> response = esClient.search(s -> s
-                            .index("products")
+                            .index("doc")
                             .query(q -> q
                                     .match(t -> t
-                                            .field("name")
+                                            .field("author")
                                             .query(searchText)
+
                                     )
-                            ),
+                            )
+                            .query(q -> q
+                                    .match(t -> t
+                                            .field("content")
+                                            .query(searchText)
+
+                            )
+                    ),
                     Document.class
             );
             TotalHits total = response.hits().total();
@@ -121,8 +128,8 @@ public class DocumentServiceImpl implements DocumentService {
 
             List<Hit<Document>> hits = response.hits().hits();
             hits.stream().map(hit->hit.source()).forEach(result::add);
-//            for (Hit<Document> hit: hits) {
-//                Document document = hit.source();
+//            for (Hit<ObjectNode> hit: hits) {
+//                ObjectNode document = hit.source();
 //                result.add(document);
 //                log.info("Found document " + document.getTitle() + ", author " + document.getAuthor());
 //            }

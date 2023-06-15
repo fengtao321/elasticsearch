@@ -1,10 +1,12 @@
 package com.demo.elasticsearch.service;
 
 
+import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +24,7 @@ public interface DocumentService {
 
     void deleteById(String id);
 
-    Document update(String id, Document document) throws DocumentNotFoundException;
+    Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException, ParseException;
 
     List<Document> search(String searchText);
 }

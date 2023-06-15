@@ -1,14 +1,17 @@
 package com.demo.elasticsearch.controller;
 
+import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.service.DocumentService;
 import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -16,6 +19,8 @@ import java.util.List;
 @RequestMapping("/v1/doc")
 public class BookController {
     private final DocumentService documentService;
+
+    private final ModelMapper modelMapper;
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
@@ -25,8 +30,8 @@ public class BookController {
 
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping
-    public Document createDocument(@Valid @RequestBody Document document) throws DuplicateDocumentException {
-        return documentService.create(document);
+    public Document createDocument(@Valid @RequestBody DocumentDto documentDto) throws DuplicateDocumentException, ParseException {
+        return documentService.create(convertToEntity(documentDto));
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -43,8 +48,8 @@ public class BookController {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping(value = "/{id}")
-    public Document updateDocument(@PathVariable String id, @RequestBody Document document) throws DocumentNotFoundException {
-        return documentService.update(id, document);
+    public Document updateDocument(@PathVariable String id, @RequestBody DocumentDto documentDto) throws DocumentNotFoundException, ParseException {
+        return documentService.update(id, documentDto);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -57,6 +62,14 @@ public class BookController {
     @GetMapping(value = "/search")
     public List<Document> searchDocument(@RequestParam(value = "searchText") String searchText) {
         return documentService.search(searchText);
+    }
+
+
+    private Document convertToEntity(DocumentDto documentDtoDto) throws ParseException {
+        Document document = modelMapper.map(documentDtoDto, Document.class);
+        document.setDate(documentDtoDto.dateConverted());
+
+        return document;
     }
 
 }
