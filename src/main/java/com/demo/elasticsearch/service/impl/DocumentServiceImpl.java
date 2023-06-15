@@ -6,7 +6,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
+import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -26,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 
@@ -40,6 +44,8 @@ public class DocumentServiceImpl implements DocumentService {
     private final ElasticsearchTemplate elasticsearchTemplate;
 
     private final ElasticsearchClient esClient;
+
+    private final ElasticsearchAsyncClient asyncESClient;
 
     private final ConfigProps props;
 
@@ -98,15 +104,41 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+//    @Async("asyncExecutor")
+    public CompletableFuture<List<Document>> searchAsync(String searchText) throws InterruptedException{
+        log.info("Thread-1: " + Thread.currentThread().getName());
+        var response = asyncESClient.search(s -> s
+                        .index(props.getIndex().getName())
+                        .query(q -> q
+                                .multiMatch(
+                                        t -> t.fields(props.getIndex().getTitle(), props.getIndex().getAuthor(),props.getIndex().getContent(), props.getIndex().getSubject())
+                                                .query(searchText.toLowerCase())
+                                                .fuzziness("AUTO")
+                                                .minimumShouldMatch("2")
+                                )
+                        ),
+                Document.class
+        );
+        log.info("Thread-2: " + Thread.currentThread().getName());
+        return response.thenApply(r -> {
+            log.info("Thread-3: " + Thread.currentThread().getName());
+            List<Document> result = new ArrayList<>();
+            List<Hit<Document>> hits = r.hits().hits();
+            hits.stream().map(hit->hit.source()).forEach(result::add);
+            return result;
+        });
+    }
+
+    @Override
     public List<Document> search(String searchText) {
         List<Document> result = new ArrayList<>();
 
         try {
             SearchResponse<Document> response = esClient.search(s -> s
-                            .index("doc")
+                            .index(props.getIndex().getName())
                             .query(q -> q
                                     .multiMatch(
-                                            t -> t.fields("author", "content","subject", "title")
+                                            t -> t.fields(props.getIndex().getTitle(), props.getIndex().getAuthor(),props.getIndex().getContent(), props.getIndex().getSubject())
                                             .query(searchText.toLowerCase())
                                                     .fuzziness("AUTO")
                                                     .minimumShouldMatch("2")

@@ -1,13 +1,21 @@
 package com.demo.elasticsearch.prop;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class Index {
     private String name;
-    private int shard;
-    private int replica;
-    private int from;
-    private int size;
-    private int timeout;
+
+    private String id;
+
+    private String title;
+
+    private String date;
+
+    private String author;
+
+    private String content;
+
+    private String subject;
 }

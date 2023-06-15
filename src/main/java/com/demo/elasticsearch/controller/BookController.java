@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,6 +63,12 @@ public class BookController {
     @GetMapping(value = "/search")
     public List<Document> searchDocument(@RequestParam(value = "searchText") String searchText) {
         return documentService.search(searchText);
+    }
+
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @GetMapping(value = "/searchAsync")
+    public CompletableFuture<List<Document>> searchDocumentAsync(@RequestParam(value = "searchText") String searchText) throws InterruptedException {
+        return documentService.searchAsync(searchText);
     }
 
 

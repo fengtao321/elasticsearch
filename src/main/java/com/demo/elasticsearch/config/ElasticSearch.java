@@ -1,5 +1,6 @@
 package com.demo.elasticsearch.config;
 
+import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
@@ -15,12 +16,16 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 
 import javax.net.ssl.SSLContext;
+import java.util.concurrent.Executor;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableAsync
 public class ElasticSearch {
 
     @Value("${spring.elasticsearch.uris}")
@@ -41,12 +46,7 @@ public class ElasticSearch {
     @Value("${spring.elasticsearch.password}")
     private String password;
 
-    @Bean
-    public ElasticsearchClient getESClient() {
-//        return ClientConfiguration.builder()
-//                .connectedTo(es_uri)
-//                .build();
-
+    private ElasticsearchTransport getElasticsearchTransport() {
         SSLContext sslContext = TransportUtils
                 .sslContextFromCaFingerprint(fingerprint);
 
@@ -64,9 +64,41 @@ public class ElasticSearch {
                 .build();
 
         // Create the transport and the API client
-        ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
-        ElasticsearchClient client = new ElasticsearchClient(transport);
+        return new RestClientTransport(restClient, new JacksonJsonpMapper());
+    }
+
+    @Bean
+    public ElasticsearchClient getESClient() {
+//        return ClientConfiguration.builder()
+//                .connectedTo(es_uri)
+//                .build();
+
+
+        ElasticsearchClient client = new ElasticsearchClient(getElasticsearchTransport());
         return client;
+    }
+
+    @Bean
+    public ElasticsearchAsyncClient getAsyncESClient() {
+//        return ClientConfiguration.builder()
+//                .connectedTo(es_uri)
+//                .build();
+
+
+        ElasticsearchAsyncClient client = new ElasticsearchAsyncClient(getElasticsearchTransport());
+        return client;
+    }
+
+    @Bean(name = "asyncExecutor")
+    public Executor asyncExecutor()  {
+
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(3);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("AsynchThread-");
+        executor.initialize();
+        return executor;
     }
 
     @Bean

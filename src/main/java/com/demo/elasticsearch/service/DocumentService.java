@@ -9,6 +9,7 @@ import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public interface DocumentService {
 
@@ -27,4 +28,6 @@ public interface DocumentService {
     Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException, ParseException;
 
     List<Document> search(String searchText);
+
+    CompletableFuture<List<Document>> searchAsync(String searchText) throws InterruptedException;
 }

@@ -7,13 +7,9 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties("doc")
+@ConfigurationProperties("app")
 @Data
 public class ConfigProps {
-
-    @NestedConfigurationProperty
-    private Document clients = new Document();
-
     @NestedConfigurationProperty
     private Index index = new Index();
 }
