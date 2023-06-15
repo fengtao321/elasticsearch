@@ -1,114 +1,62 @@
 package com.demo.elasticsearch.controller;
 
-import com.demo.elasticsearch.model.Book;
-import com.demo.elasticsearch.service.BookService;
-import com.demo.elasticsearch.service.exception.BookNotFoundException;
-import com.demo.elasticsearch.service.exception.DuplicateIsbnException;
+import com.demo.elasticsearch.model.Document;
+import com.demo.elasticsearch.service.DocumentService;
+import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
+import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/books")
+@RequestMapping("/v1/doc")
 public class BookController {
-    private final BookService bookService;
+    private final DocumentService documentService;
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    public List<Book> getAllBooks() {
-        return bookService.getAll();
+    public List<Document> getAllDocuments() {
+        return documentService.getAll();
     }
 
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping
-    public Book createBook(@Valid @RequestBody BookDto book) throws DuplicateIsbnException {
-        return bookService.create(BookDto.transform(book));
+    public Document createDocument(@Valid @RequestBody Document document) throws DuplicateDocumentException {
+        return documentService.create(document);
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/{isbn}")
-    public Book getBookByIsbn(@PathVariable String isbn) throws BookNotFoundException {
-        return bookService.getByIsbn(isbn).orElseThrow(() -> new BookNotFoundException("The given isbn is invalid"));
+    @GetMapping(value = "/{title}")
+    public Document getBookByTitle(@PathVariable String title) throws DocumentNotFoundException {
+        return documentService.getByTitle(title).orElseThrow(() -> new DocumentNotFoundException("The given document is not exist"));
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/query")
-    public List<Book> getBooksByAuthorAndTitle(@RequestParam(value = "title") String title, @RequestParam(value = "author") String author) {
-        return bookService.findByTitleAndAuthor(title, author);
+    public List<Document> getBooksByAuthorAndTitle(@RequestParam(value = "title") String title, @RequestParam(value = "author") String author) {
+        return documentService.findByTitleAndAuthor(title, author);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping(value = "/{id}")
-    public Book updateBook(@PathVariable String id, @RequestBody BookDto book) throws BookNotFoundException {
-        return bookService.update(id, BookDto.transform(book));
+    public Document updateDocument(@PathVariable String id, @RequestBody Document document) throws DocumentNotFoundException {
+        return documentService.update(id, document);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(value = "/{id}")
-    public void deleteBook(@PathVariable String id) {
-        bookService.deleteById(id);
+    public void deleteDocument(@PathVariable String id) {
+        documentService.deleteById(id);
     }
 
-    public static class BookDto {
-
-        @NotBlank
-        private String title;
-
-        @Positive
-//        @PublicationYear
-        private Integer publicationYear;
-
-        @NotBlank
-        private String authorName;
-
-        @NotBlank
-        private String isbn;
-
-        static Book transform(BookDto bookDto) {
-            Book book = new Book();
-            book.setTitle(bookDto.title);
-            book.setPublicationYear(bookDto.publicationYear);
-            book.setAuthorName(bookDto.authorName);
-            book.setIsbn(bookDto.isbn);
-            return book;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public Integer getPublicationYear() {
-            return publicationYear;
-        }
-
-        public void setPublicationYear(Integer publicationYear) {
-            this.publicationYear = publicationYear;
-        }
-
-        public String getAuthorName() {
-            return authorName;
-        }
-
-        public void setAuthorName(String authorName) {
-            this.authorName = authorName;
-        }
-
-        public String getIsbn() {
-            return isbn;
-        }
-
-        public void setIsbn(String isbn) {
-            this.isbn = isbn;
-        }
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @GetMapping(value = "/search")
+    public List<Document> searchDocument(@RequestParam(value = "searchText") String searchText) {
+        return documentService.search(searchText);
     }
+
 }
