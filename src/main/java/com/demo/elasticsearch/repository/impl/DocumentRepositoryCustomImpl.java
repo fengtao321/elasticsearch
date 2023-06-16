@@ -7,6 +7,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.config.PropsConfig;
+import com.demo.elasticsearch.repository.DocumentRepository;
 import com.demo.elasticsearch.repository.DocumentRepositoryCustom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

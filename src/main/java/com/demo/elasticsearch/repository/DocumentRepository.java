@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DocumentRepository extends ElasticsearchRepository<Document, String> {
+public interface DocumentRepository extends ElasticsearchRepository<Document, String>, DocumentRepositoryCustom {
     Optional<Document> findByTitle(String title);
 }

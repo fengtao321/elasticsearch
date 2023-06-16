@@ -29,8 +29,6 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
 
-    private final DocumentRepositoryCustom documentRepositoryCustom;
-
     private final ModelMapper modelMapper;
 
     @Override
@@ -47,7 +45,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Optional<Document> getByTitleAndAuthor(String title, String author) {
-        return documentRepositoryCustom.findByTitleAuthor(title, author);
+        return documentRepository.findByTitleAuthor(title, author);
     }
 
     @Override
@@ -75,12 +73,12 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public CompletableFuture<List<Document>> search(String searchText){
-        return documentRepositoryCustom.searchAsync(searchText);
+        return documentRepository.searchAsync(searchText);
     }
 
     @Override
     public List<Document> searchBlocking(String searchText) throws IOException {
-        return documentRepositoryCustom.search(searchText);
+        return documentRepository.search(searchText);
     }
 
 }
