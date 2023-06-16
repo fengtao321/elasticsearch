@@ -69,22 +69,12 @@ public class ElasticSearch {
 
     @Bean
     public ElasticsearchClient getESClient() {
-//        return ClientConfiguration.builder()
-//                .connectedTo(es_uri)
-//                .build();
-
-
         ElasticsearchClient client = new ElasticsearchClient(getElasticsearchTransport());
         return client;
     }
 
     @Bean
     public ElasticsearchAsyncClient getAsyncESClient() {
-//        return ClientConfiguration.builder()
-//                .connectedTo(es_uri)
-//                .build();
-
-
         ElasticsearchAsyncClient client = new ElasticsearchAsyncClient(getElasticsearchTransport());
         return client;
     }

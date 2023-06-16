@@ -55,7 +55,8 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public Document create(Document document) throws DuplicateDocumentException {
+    public Document create(DocumentDto documentDto) throws DuplicateDocumentException {
+        Document document = modelMapper.map(documentDto, Document.class);
         if (getByTitle(document.getTitle()).isEmpty()) {
             return documentRepository.save(document);
         }
@@ -71,7 +72,7 @@ public class DocumentServiceImpl implements DocumentService {
     public Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException {
         String oldDocumentId = documentRepository.findById(id).map(Document::getId)
                 .orElseThrow(() -> new DocumentNotFoundException("There is not document associated with the given id"));
-        Document document = convertToEntity(documentDto);
+        Document document = modelMapper.map(documentDto, Document.class);
         document.setId(oldDocumentId);
         return documentRepository.save(document);
     }
@@ -84,14 +85,6 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public List<Document> searchBlocking(String searchText) throws IOException {
         return documentRepositoryCustom.search(searchText);
-    }
-
-    @Override
-    public Document convertToEntity(DocumentDto documentDtoDto) {
-        Document document = modelMapper.map(documentDtoDto, Document.class);
-        document.setDate(documentDtoDto.dateConverted());
-
-        return document;
     }
 
 }

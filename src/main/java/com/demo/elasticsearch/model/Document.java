@@ -22,7 +22,7 @@ public class Document {
     private String title;
 
     @JsonProperty("date")
-    private int date;
+    private String date;
 
     @JsonProperty("author")
     private String author;

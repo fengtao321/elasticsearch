@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface DocumentService {
-    Document create(Document document) throws DuplicateDocumentException;
+    Document create(DocumentDto document) throws DuplicateDocumentException;
 
     Document update(String id, DocumentDto documentDto) throws DocumentNotFoundException;
 
@@ -28,5 +28,4 @@ public interface DocumentService {
 
     CompletableFuture<List<Document>> search(String searchText);
 
-    Document convertToEntity(DocumentDto documentDtoDto);
 }

@@ -5,6 +5,7 @@ import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.service.DocumentService;
 import com.demo.elasticsearch.service.exception.DocumentNotFoundException;
 import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
+import io.micrometer.common.util.StringUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,14 +31,14 @@ public class BookController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping
     public Document createDocument(@Valid @RequestBody DocumentDto documentDto) throws DuplicateDocumentException {
-        return documentService.create(documentService.convertToEntity(documentDto));
+        return documentService.create(documentDto);
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/{title}/{author}")
     public Document getBookByTitle(@PathVariable String title, @RequestParam(value = "author",required = false) String author) throws DocumentNotFoundException {
         Optional<Document> document;
-        if(author.isBlank()) {
+        if(StringUtils.isBlank(author)) {
             document =documentService.getByTitle(title);
         } else {
             document = documentService.getByTitleAndAuthor(title, author);

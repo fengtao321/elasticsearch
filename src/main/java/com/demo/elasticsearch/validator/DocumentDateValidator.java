@@ -8,16 +8,11 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class DocumentDateValidator implements ConstraintValidator<DocumentDate, String> {
+public class DocumentDateValidator implements ConstraintValidator<DocumentDate, Date> {
     @Override
-    public boolean isValid(String dateStr, ConstraintValidatorContext context) {
-        DocumentDto.dateFormat.setLenient(false);
-        try {
-            DocumentDto.dateFormat.parse(dateStr);
-        } catch (ParseException e) {
-            return false;
-        }
-        return true;
+    public boolean isValid(Date date, ConstraintValidatorContext context) {
+        return date.getYear()>2000;
     }
 }

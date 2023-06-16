@@ -9,6 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface DocumentRepository extends ElasticsearchRepository<Document, String> {
-
     Optional<Document> findByTitle(String title);
 }
