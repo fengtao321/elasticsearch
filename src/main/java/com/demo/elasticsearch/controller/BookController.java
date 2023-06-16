@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +60,7 @@ public class BookController {
 
     @ResponseStatus(HttpStatus.ACCEPTED)
     @GetMapping(value = "/searchBlocking")
-    public List<Document> searchDocumentBlocking(@RequestParam(value = "searchText") String searchText) {
+    public List<Document> searchDocumentBlocking(@RequestParam(value = "searchText") String searchText) throws IOException {
         return documentService.searchBlocking(searchText);
     }
 

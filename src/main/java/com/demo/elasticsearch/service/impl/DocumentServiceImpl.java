@@ -2,6 +2,7 @@ package com.demo.elasticsearch.service.impl;
 
 import static co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders.match;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -9,10 +10,6 @@ import java.util.concurrent.CompletableFuture;
 
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.elasticsearch.core.search.TotalHits;
-import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
 import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
 import com.demo.elasticsearch.prop.ConfigProps;
@@ -25,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
-import org.springframework.data.elasticsearch.client.elc.NativeQuery;
-import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.stereotype.Service;
 
 
@@ -40,14 +35,6 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepositoryCustom documentRepositoryCustom;
 
-    private final ElasticsearchTemplate elasticsearchTemplate;
-
-    private final ElasticsearchClient esClient;
-
-    private final ElasticsearchAsyncClient asyncESClient;
-
-    private final ConfigProps props;
-
     private final ModelMapper modelMapper;
 
     @Override
@@ -58,8 +45,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public List<Document> getAll() {
         List<Document> documents = new ArrayList<>();
-        documentRepository.findAll()
-                .forEach(documents::add);
+        documentRepository.findAll().forEach(documents::add);
         return documents;
     }
 
@@ -92,67 +78,12 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public CompletableFuture<List<Document>> search(String searchText){
-        log.info("Thread-1: " + Thread.currentThread().getName());
-        var response = asyncESClient.search(s -> s
-                        .index(props.getIndex().getName())
-                        .query(q -> q
-                                .multiMatch(
-                                        t -> t.fields(props.getIndex().getTitle(), props.getIndex().getAuthor(),props.getIndex().getContent(), props.getIndex().getSubject())
-                                                .query(searchText.toLowerCase())
-                                                .fuzziness("AUTO")
-                                                .minimumShouldMatch("2")
-                                )
-                        ),
-                Document.class
-        );
-        log.info("Thread-2: " + Thread.currentThread().getName());
-        return response.thenApply(r -> {
-            log.info("Thread-3: " + Thread.currentThread().getName());
-            List<Document> result = new ArrayList<>();
-            List<Hit<Document>> hits = r.hits().hits();
-            hits.stream().map(hit->hit.source()).forEach(result::add);
-            return result;
-        });
+        return documentRepositoryCustom.searchAsync(searchText);
     }
 
     @Override
-    public List<Document> searchBlocking(String searchText) {
-        List<Document> result = new ArrayList<>();
-
-        try {
-            SearchResponse<Document> response = esClient.search(s -> s
-                            .index(props.getIndex().getName())
-                            .query(q -> q
-                                    .multiMatch(
-                                            t -> t.fields(props.getIndex().getTitle(), props.getIndex().getAuthor(),props.getIndex().getContent(), props.getIndex().getSubject())
-                                            .query(searchText.toLowerCase())
-                                                    .fuzziness("AUTO")
-                                                    .minimumShouldMatch("2")
-                                    )
-                            ),
-                    Document.class
-            );
-            TotalHits total = response.hits().total();
-            boolean isExactResult = total.relation() == TotalHitsRelation.Eq;
-
-            if (isExactResult) {
-                log.info("There are " + total.value() + " results");
-            } else {
-                log.info("There are more than " + total.value() + " results");
-            }
-
-            List<Hit<Document>> hits = response.hits().hits();
-            hits.stream().map(hit->hit.source()).forEach(result::add);
-//            for (Hit<ObjectNode> hit: hits) {
-//                ObjectNode document = hit.source();
-//                result.add(document);
-//                log.info("Found document " + document.getTitle() + ", author " + document.getAuthor());
-//            }
-        } catch (Exception ex){
-            log.error("The exception was thrown in wildcardQuery method.", ex);
-        }
-
-        return result;
+    public List<Document> searchBlocking(String searchText) throws IOException {
+        return documentRepositoryCustom.search(searchText);
     }
 
     @Override
