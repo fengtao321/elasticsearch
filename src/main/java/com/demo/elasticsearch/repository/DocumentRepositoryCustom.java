@@ -13,4 +13,6 @@ public interface DocumentRepositoryCustom {
     public Optional<Document> findByTitleAuthor(String title, String author);
     public List<Document> search(String searchText) throws IOException;
     public CompletableFuture<List<Document>> searchAsync(String searchText);
+
+    //public <T extends ApiClient<ElasticsearchTransport, T>, G> List<G> search(T client, String searchText);
 }
