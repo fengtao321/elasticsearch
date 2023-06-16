@@ -7,3 +7,8 @@ app:
     author: author
     content: content
     subject: subject
+  executor:
+    poolSize: 1
+    keepAlive: 60
+    queueCapacity: max
+    maxPoolSize: max

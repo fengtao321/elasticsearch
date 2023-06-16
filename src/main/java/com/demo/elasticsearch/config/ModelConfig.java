@@ -3,7 +3,6 @@ package com.demo.elasticsearch.config;
 
 import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeMap;
@@ -14,7 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Configuration
-//@RequiredArgsConstructor
 public class ModelConfig {
     public static final String dateFormat ="yyyy-MM-dd";
 

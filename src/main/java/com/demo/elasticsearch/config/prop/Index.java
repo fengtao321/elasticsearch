@@ -1,6 +1,5 @@
-package com.demo.elasticsearch.prop;
+package com.demo.elasticsearch.config.prop;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data

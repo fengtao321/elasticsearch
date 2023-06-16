@@ -8,11 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.demo.elasticsearch.dto.DocumentDto;
 import com.demo.elasticsearch.model.Document;
-import com.demo.elasticsearch.prop.ConfigProps;
 import com.demo.elasticsearch.repository.DocumentRepository;
 import com.demo.elasticsearch.repository.DocumentRepositoryCustom;
 import com.demo.elasticsearch.service.DocumentService;
@@ -21,7 +18,6 @@ import com.demo.elasticsearch.service.exception.DuplicateDocumentException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.stereotype.Service;
 
 

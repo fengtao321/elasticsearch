@@ -7,6 +7,7 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.TransportUtils;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -26,7 +27,9 @@ import java.util.concurrent.Executor;
 @Configuration
 @RequiredArgsConstructor
 @EnableAsync
+@Slf4j
 public class ElasticSearch {
+    private final PropsConfig props;
 
     @Value("${spring.elasticsearch.uris}")
     private String es_uri;
@@ -81,12 +84,11 @@ public class ElasticSearch {
 
     @Bean(name = "asyncExecutor")
     public Executor asyncExecutor()  {
-
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3);
-        executor.setMaxPoolSize(3);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("AsynchThread-");
+        executor.setCorePoolSize(props.getExecutor().getPoolSize());
+        executor.setMaxPoolSize(props.getExecutor().getMaxPoolSize());
+        executor.setQueueCapacity(props.getExecutor().getQueueCapacity());
+        executor.setThreadNamePrefix("AsynchThread-"); //for log
         executor.initialize();
         return executor;
     }

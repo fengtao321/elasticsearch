@@ -6,10 +6,9 @@ import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.demo.elasticsearch.model.Document;
-import com.demo.elasticsearch.prop.ConfigProps;
+import com.demo.elasticsearch.config.PropsConfig;
 import com.demo.elasticsearch.repository.DocumentRepositoryCustom;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
@@ -35,7 +34,7 @@ public class DocumentRepositoryCustomImpl implements DocumentRepositoryCustom {
 
     private final ElasticsearchAsyncClient asyncESClient;
     
-    private final ConfigProps props;
+    private final PropsConfig props;
 
     @Override
     public Optional<Document> findByTitleAuthor(String title, String author) {
