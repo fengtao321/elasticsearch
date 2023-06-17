@@ -2,7 +2,7 @@ version: '2.2'
 
 services:
   elasticsearch-backend:
-    build: .
+    build: jib-build-elasticsearch-0.0.1-SNAPSHOT
     container_name: elasticsearch-app
     ports:
       - 18080:8080
