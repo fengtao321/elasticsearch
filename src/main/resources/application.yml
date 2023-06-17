@@ -18,7 +18,7 @@ spring:
     repositoriesEnabled: true
     uris: localhost
     port: 9200
-    scheme: http
+    scheme: https
     user: elastic
     password: UxYpURPaqrRdKY6+dumY
     fingerprint: 8dd56581eaaa1c7c961f81f3229548884844bad482b7cf48287a0403dfd4d7cd
