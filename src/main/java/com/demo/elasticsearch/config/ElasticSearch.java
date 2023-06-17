@@ -15,6 +15,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -50,22 +51,30 @@ public class ElasticSearch {
     private String password;
 
     private ElasticsearchTransport getElasticsearchTransport() {
-        SSLContext sslContext = TransportUtils
-                .sslContextFromCaFingerprint(fingerprint);
+        RestClient restClient;
+        if(scheme.equals("https")) {
+            log.info("debug info:  start to create HTTPS elastic client");
+            SSLContext sslContext = TransportUtils
+                    .sslContextFromCaFingerprint(fingerprint);
 
-        BasicCredentialsProvider credsProv = new BasicCredentialsProvider();
-        credsProv.setCredentials(
-                AuthScope.ANY, new UsernamePasswordCredentials(user, password)
-        );
+            BasicCredentialsProvider credsProv = new BasicCredentialsProvider();
+            credsProv.setCredentials(
+                    AuthScope.ANY, new UsernamePasswordCredentials(user, password)
+            );
 
-        RestClient restClient = RestClient
-                .builder(new HttpHost(es_uri, port, scheme))
-                .setHttpClientConfigCallback(hc -> hc
-                        .setSSLContext(sslContext)
-                        .setDefaultCredentialsProvider(credsProv)
-                )
-                .build();
-
+            restClient = RestClient
+                    .builder(new HttpHost(es_uri, port, scheme))
+                    .setHttpClientConfigCallback(hc -> hc
+                            .setSSLContext(sslContext)
+                            .setDefaultCredentialsProvider(credsProv)
+                    )
+                    .build();
+        } else {
+            log.info("debug info:  start to create HTTP elastic client");
+            restClient = RestClient
+                    .builder(new HttpHost(es_uri, port, scheme))
+                    .build();
+        }
         // Create the transport and the API client
         return new RestClientTransport(restClient, new JacksonJsonpMapper());
     }

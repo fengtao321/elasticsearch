@@ -12,3 +12,13 @@ app:
     keepAlive: 60
     queueCapacity: max
     maxPoolSize: max
+
+spring:
+  elasticsearch:
+    repositoriesEnabled: true
+    uris: localhost
+    port: 9200
+    scheme: http
+    user: elastic
+    password: UxYpURPaqrRdKY6+dumY
+    fingerprint: 8dd56581eaaa1c7c961f81f3229548884844bad482b7cf48287a0403dfd4d7cd
