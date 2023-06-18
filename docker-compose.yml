@@ -1,8 +1,9 @@
 version: '2.2'
-
+#RUN this command to start the docker:
+#           mvn compile jib:dockerBuild && docker-compose up
 services:
   elasticsearch-backend:
-    build: jib-build-elasticsearch-0.0.1-SNAPSHOT
+    image: jib-build-elasticsearch:0.0.1-SNAPSHOT
     container_name: elasticsearch-app
     ports:
       - 18080:8080
